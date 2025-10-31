@@ -1,676 +1,216 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>BlueTriangle WebOS — Demo</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebOS | BlueTriangle</title>
 <style>
-  :root{
-    --bg1:#071023; --bg2:#0e2133; --panel:#0f1720;
-    --accent:#00b8d4; --accent-2:#00d4b3; --muted:#9aa6b2;
-    --window-shadow: 0 10px 30px rgba(2,6,23,0.6);
-    --glass: rgba(255,255,255,0.03);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;color:#e6f7fb;background:linear-gradient(180deg,var(--bg1),var(--bg2));}
-  /* Login container */
-  .login-wrap{height:100%;display:flex;align-items:center;justify-content:center;padding:20px}
-  .card{width:420px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:22px;box-shadow:0 8px 30px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.02)}
-  .brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-  .logo{
-    width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));
-    box-shadow: 0 6px 18px rgba(0,184,212,0.12), inset 0 -6px 12px rgba(255,255,255,0.06);
-  }
-  /* triangle logo */
-  .logo svg{width:28px;height:28px;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.25))}
-  h1{margin:0;font-size:18px;color:#dff7fb}
-  p.lead{margin:6px 0 14px;color:var(--muted);font-size:13px}
-  input[type=text],input[type=password],input[type=number],textarea{
-    width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:#08101a;color:#eaffff;margin:8px 0;outline:none;font-size:14px;
-  }
-  button.btn{
-    background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:10px 14px;border-radius:10px;color:#042a2a;font-weight:700;cursor:pointer;
-    box-shadow:0 6px 18px rgba(0,184,212,0.12);
-  }
-  .muted{color:var(--muted);font-size:13px}
-  .row{display:flex;gap:8px}
-  .small{font-size:13px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02)}
-  .link{color:var(--accent);cursor:pointer;text-decoration:underline;font-weight:600}
+/* --- RESET --- */
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",sans-serif;user-select:none}
+body{background:linear-gradient(135deg,#0d1117,#1e2a3a);color:#fff;overflow:hidden;height:100vh}
 
-  /* Desktop */
-  .desktop{
-    width:100vw;height:100vh;display:none;position:relative;overflow:hidden;
-    background-image: linear-gradient(180deg, rgba(4,18,32,0.35), rgba(2,9,18,0.6)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="%2300b8d4"/><stop offset="1" stop-color="%2300d4b3"/></linearGradient></defs><rect width="100%" height="100%" fill="%23020b12"/><g fill="none" stroke="%23004654" stroke-opacity="0.06"><path d="M0,600 C300,500 500,700 900,600 C1200,520 1400,650 1600,600"/></g></svg>');
-    background-size:cover;
-  }
-  .desktop .icons{position:absolute;left:18px;top:18px;display:flex;flex-direction:column;gap:12px}
-  .app-icon{width:84px;text-align:center;color:#eaffff;cursor:pointer}
-  .app-icon .ico{width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:24px;box-shadow:0 6px 18px rgba(0,0,0,0.4)}
-  .app-icon span{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* taskbar */
-  .taskbar{position:absolute;left:0;right:0;bottom:0;height:48px;background:rgba(3,10,14,0.6);backdrop-filter: blur(6px);display:flex;align-items:center;padding:6px 12px;gap:12px;border-top:1px solid rgba(255,255,255,0.03)}
-  .start{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));cursor:pointer}
-  .start .logo-mini{width:26px;height:26;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center}
-  .taskbar .tray{margin-left:auto;display:flex;align-items:center;gap:10px;color:#d7f7fb;font-size:13px}
-  .taskbar .running{display:flex;gap:8px;align-items:center}
-  .start-menu{position:absolute;left:12px;bottom:60px;width:320px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:12px;padding:12px;box-shadow:var(--window-shadow);display:none}
-  .start-menu h3{margin:0 0 8px;color:#e6fbff}
-  .start-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-  .tile{background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;text-align:center;font-size:13px;cursor:pointer}
-  /* windows */
-  .win{
-    position:absolute;width:640px;height:420px;background:linear-gradient(180deg,#071a24,#05202b);border-radius:10px;padding:0;border:1px solid rgba(255,255,255,0.04);box-shadow:var(--window-shadow);overflow:hidden;display:flex;flex-direction:column;
-  }
-  .titlebar{height:40px;display:flex;align-items:center;gap:8px;padding:0 10px;background:linear-gradient(180deg, rgba(0,0,0,0.18), rgba(255,255,255,0.01));border-bottom:1px solid rgba(255,255,255,0.02)}
-  .titlebar .title{flex:1;color:#dff7fb;font-weight:700}
-  .titlebar .ctrls{display:flex;gap:8px}
-  .ctrls button{background:transparent;border:none;color:#dff7fb;padding:6px;border-radius:6px;cursor:pointer}
-  .win .content{flex:1;padding:12px;overflow:auto;color:#cfeff4}
-  .hidden{display:none}
-  /* small app styles */
-  .list{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px}
-  .card-small{padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:8px}
-  /* footer small */
-  .muted-sm{color:var(--muted);font-size:12px}
-  /* responsive */
-  @media (max-width:720px){
-    .card{width:320px}
-    .win{width:94%;height:70%}
-  }
+/* --- LOGIN --- */
+#loginScreen{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  background:linear-gradient(145deg,#101823,#1c2838);
+}
+.login-box{
+  background:#161b22;padding:30px 40px;border-radius:20px;
+  box-shadow:0 0 20px rgba(0,255,255,0.2);width:350px;
+}
+.logo{
+  width:0;height:0;border-left:25px solid transparent;
+  border-right:25px solid transparent;border-bottom:43px solid #00bcd4;
+  margin:0 auto 20px auto;filter:drop-shadow(0 0 6px #00bcd4);
+}
+.login-box input{
+  width:100%;padding:10px;margin:8px 0;border:none;border-radius:10px;
+  background:#0d1117;color:#fff;text-align:center;font-size:16px;
+}
+button{background:#00bcd4;border:none;color:#fff;padding:10px 20px;
+  border-radius:10px;font-weight:bold;cursor:pointer;transition:0.2s}
+button:hover{background:#0097a7}
+#registerLink{color:#9ae6ff;margin-top:10px;cursor:pointer}
+
+/* --- DESKTOP --- */
+#desktop{display:none;width:100%;height:100%;position:relative;background:url('https://i.imgur.com/pDphjsb.jpeg') center/cover no-repeat;}
+.icon{width:80px;text-align:center;margin:15px;color:white;cursor:pointer}
+.icon img{width:50px;height:50px;filter:drop-shadow(0 0 5px rgba(255,255,255,0.3))}
+.icon span{display:block;margin-top:5px;font-size:14px}
+#iconsContainer{display:flex;flex-wrap:wrap;padding:10px}
+
+/* --- TASKBAR --- */
+#taskbar{
+  position:absolute;bottom:0;left:0;width:100%;height:45px;
+  background:rgba(25,25,35,0.7);backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 15px;
+}
+#startBtn{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:bold}
+#clock{font-size:14px;opacity:0.8}
+
+/* --- WINDOW --- */
+.window{
+  position:absolute;background:rgba(25,25,35,0.9);
+  backdrop-filter:blur(10px);border-radius:12px;padding:10px;
+  box-shadow:0 0 20px rgba(0,0,0,0.4);width:400px;height:300px;
+  top:80px;left:100px;display:none;flex-direction:column;
+}
+.window-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.window-header h3{margin:0;font-size:16px}
+.closeBtn{cursor:pointer;background:#e74c3c;border:none;border-radius:50%;width:20px;height:20px}
+
+/* --- APP STORE --- */
+.appItem{background:#2b3445;padding:10px;margin:5px;border-radius:8px}
+.appItem button{margin-top:5px;width:100%;}
+
+/* --- SIMPLE SCROLL --- */
+.window-content{overflow:auto;flex:1}
+
+/* --- TRANSITION --- */
+.fade{animation:fadeIn 0.4s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
 </style>
 </head>
 <body>
-<!-- LOGIN / REGISTER -->
-<div id="login" class="login-wrap">
-  <div class="card">
-    <div class="brand">
-      <div class="logo" title="BlueTriangle">
-        <!-- triangle logo -->
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="12,3 22,20 2,20" fill="white" fill-opacity="0.95" transform="translate(0,0) scale(1)"/>
-        </svg>
-      </div>
-      <div>
-        <h1>BlueTriangle WebOS — Demo</h1>
-        <p class="lead">Đăng nhập bảo mật 3 lớp — demo offline (deploy lên GitHub Pages được)</p>
-      </div>
-    </div>
 
-    <div id="step-register" class="step">
-      <input id="reg-username" type="text" placeholder="Tên đăng nhập (ví dụ: admin)" />
-      <input id="reg-password" type="password" placeholder="Mật khẩu (ví dụ: 12345)" />
-      <div style="display:flex;gap:8px;margin-top:6px">
-        <button class="btn" onclick="doRegister()">Đăng ký</button>
-        <button class="small" onclick="showLogin()">Đã có tài khoản? Đăng nhập</button>
-      </div>
-      <p class="muted" style="margin-top:10px">Hoặc dùng tài khoản mẫu: <b>admin / 12345</b></p>
-    </div>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box fade">
+    <div class="logo"></div>
+    <h2>Đăng nhập BlueTriangle OS</h2>
+    <input type="text" id="loginUser" placeholder="Tên đăng nhập">
+    <input type="password" id="loginPass" placeholder="Mật khẩu">
+    <button onclick="login()">Đăng nhập</button>
+    <div id="registerLink" onclick="showRegister()">Tạo tài khoản mới</div>
+  </div>
+</div>
 
-    <div id="step-1" class="step" style="display:none;margin-top:6px">
-      <input id="login-username" type="text" placeholder="Tên đăng nhập" />
-      <input id="login-password" type="password" placeholder="Mật khẩu" />
-      <div style="display:flex;gap:8px;margin-top:6px">
-        <button class="btn" onclick="startLogin()">Tiếp tục</button>
-        <button class="small" onclick="showRegister()">Đăng ký</button>
-      </div>
-      <p class="muted" style="margin-top:10px">Bước 1: Xác thực mật khẩu</p>
-    </div>
-
-    <div id="step-2" class="step" style="display:none;margin-top:6px">
-      <p class="muted">Bước 2: Nhập mã OTP (demo — hệ thống sẽ hiển thị mã)</p>
-      <input id="login-otp" type="number" placeholder="6 chữ số OTP" />
-      <div style="display:flex;gap:8px;margin-top:6px">
-        <button class="btn" onclick="verifyOtp()">Xác nhận OTP</button>
-        <button class="small" onclick="backToStep1()">⬅ Quay lại</button>
-      </div>
-      <p id="otp-hint" class="muted-sm" style="margin-top:8px"></p>
-    </div>
-
-    <div id="step-3" class="step" style="display:none;margin-top:6px">
-      <p class="muted">Bước 3: Xác minh khóa bảo mật (WebAuthn) — demo</p>
-      <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
-        <button class="btn" onclick="verifyKey()">🔑 Xác minh khóa bảo mật</button>
-        <button class="small" onclick="backToStep2()">⬅ Quay lại</button>
-      </div>
-      <div style="margin-top:10px" class="muted-sm">Bạn có thể đánh dấu "Remember this device" trong settings sau khi đăng nhập.</div>
-    </div>
-
-    <div id="step-done" class="step" style="display:none;margin-top:12px;text-align:center">
-      <p class="muted">Đăng nhập thành công! Đang chuyển vào WebOS...</p>
-      <div style="height:8px"></div>
-      <button class="btn" onclick="enterDesktop()">Vào Desktop</button>
-    </div>
-
+<!-- REGISTER SCREEN -->
+<div id="registerScreen" style="display:none;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+  <div class="login-box fade">
+    <div class="logo"></div>
+    <h2>Tạo tài khoản mới</h2>
+    <input type="text" id="regUser" placeholder="Tên đăng nhập">
+    <input type="password" id="regPass" placeholder="Mật khẩu">
+    <input type="text" id="regOtp" placeholder="Mã OTP (tùy ý)">
+    <button onclick="register()">Đăng ký</button>
+    <div id="registerLink" onclick="backToLogin()">⬅ Quay lại đăng nhập</div>
   </div>
 </div>
 
 <!-- DESKTOP -->
-<div id="desktop" class="desktop">
-  <div class="icons" id="desktop-icons"></div>
-
-  <!-- Start menu -->
-  <div id="start-menu" class="start-menu">
-    <h3>Start</h3>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <div style="flex:1">
-        <div class="muted-sm">User</div>
-        <div style="font-weight:700" id="sm-user">—</div>
-      </div>
-      <div style="width:80px;text-align:right">
-        <div class="muted-sm">Brand</div>
-        <div style="font-weight:700">BlueTriangle</div>
-      </div>
-    </div>
-    <div class="start-grid" id="start-grid">
-      <!-- tiles injected -->
-    </div>
-    <div style="height:8px"></div>
-    <div class="muted-sm">Quick apps</div>
-    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap" id="quick-apps"></div>
+<div id="desktop">
+  <div id="iconsContainer">
+    <div class="icon" onclick="openApp('store')"><img src="https://img.icons8.com/color/96/shop.png"><span>App DL</span></div>
+    <div class="icon" onclick="openApp('ai')"><img src="https://img.icons8.com/color/96/artificial-intelligence.png"><span>AI !#!</span></div>
+    <div class="icon" onclick="openApp('code')"><img src="https://img.icons8.com/color/96/source-code.png"><span>CD Code</span></div>
+    <div class="icon" onclick="openApp('shvid')"><img src="https://img.icons8.com/color/96/youtube-play.png"><span>ShVid</span></div>
+    <div class="icon" onclick="openApp('talkout')"><img src="https://img.icons8.com/color/96/chat--v1.png"><span>TalkOut</span></div>
+    <div class="icon" onclick="openApp('snake')"><img src="https://img.icons8.com/color/96/snake.png"><span>Snake</span></div>
+    <div class="icon" onclick="openApp('run')"><img src="https://img.icons8.com/color/96/run.png"><span>Run Away!</span></div>
+    <div class="icon" onclick="openApp('roblox')"><img src="https://img.icons8.com/color/96/cube.png"><span>Roblox</span></div>
   </div>
 
-  <!-- Taskbar -->
-  <div class="taskbar">
-    <div class="start" onclick="toggleStart()">
-      <div class="logo-mini" title="BlueTriangle">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px">
-          <polygon points="12,3 22,20 2,20" fill="white" fill-opacity="0.95"/>
-        </svg>
-      </div>
-      <div class="muted-sm">BlueTriangle</div>
-    </div>
+  <!-- TASKBAR -->
+  <div id="taskbar">
+    <div id="startBtn"><div class="logo"></div><span>Start</span></div>
+    <div id="clock"></div>
+  </div>
 
-    <div class="running" id="running-bar"></div>
-
-    <div class="tray">
-      <div class="muted-sm" id="tray-time">--:--</div>
-      <div class="muted-sm"><span id="tray-date"></span></div>
+  <!-- WINDOWS -->
+  <div id="store" class="window fade">
+    <div class="window-header"><h3>App Store</h3><button class="closeBtn" onclick="closeApp('store')"></button></div>
+    <div class="window-content">
+      <div class="appItem"><b>AI !#!</b><p>Trò chuyện với AI</p><button disabled>Đã cài</button></div>
+      <div class="appItem"><b>ShVid</b><p>Đăng video và tạo kênh</p><button disabled>Đã cài</button></div>
+      <div class="appItem"><b>TalkOut</b><p>Đăng bài và chat với mọi người</p><button disabled>Đã cài</button></div>
+      <div class="appItem"><b>Snake</b><p>Game cổ điển</p><button disabled>Đã cài</button></div>
     </div>
+  </div>
+
+  <div id="ai" class="window fade">
+    <div class="window-header"><h3>AI !#!</h3><button class="closeBtn" onclick="closeApp('ai')"></button></div>
+    <div class="window-content"><p>🤖 Đây là bản giả lập AI Chat.<br>Trong phiên bản thật có thể kết nối API OpenAI.</p></div>
+  </div>
+
+  <div id="code" class="window fade">
+    <div class="window-header"><h3>CD Code</h3><button class="closeBtn" onclick="closeApp('code')"></button></div>
+    <div class="window-content"><textarea style="width:100%;height:90%;background:#111;color:#0f0;border:none;border-radius:8px;padding:5px;">// Viết code JS tại đây...</textarea></div>
+  </div>
+
+  <div id="shvid" class="window fade">
+    <div class="window-header"><h3>ShVid</h3><button class="closeBtn" onclick="closeApp('shvid')"></button></div>
+    <div class="window-content"><p>🎬 Ứng dụng chia sẻ video giả lập.<br>Ở bản thật có thể upload và tạo kênh.</p></div>
+  </div>
+
+  <div id="talkout" class="window fade">
+    <div class="window-header"><h3>TalkOut</h3><button class="closeBtn" onclick="closeApp('talkout')"></button></div>
+    <div class="window-content"><p>💬 Mạng xã hội giả lập để đăng bài và chat.</p></div>
+  </div>
+
+  <div id="snake" class="window fade">
+    <div class="window-header"><h3>Snake</h3><button class="closeBtn" onclick="closeApp('snake')"></button></div>
+    <div class="window-content"><p>🐍 Snake game đang được phát triển...</p></div>
+  </div>
+
+  <div id="run" class="window fade">
+    <div class="window-header"><h3>Run Away!</h3><button class="closeBtn" onclick="closeApp('run')"></button></div>
+    <div class="window-content"><p>🏃 Game né vật cản - bản demo.</p></div>
+  </div>
+
+  <div id="roblox" class="window fade">
+    <div class="window-header"><h3>Roblox</h3><button class="closeBtn" onclick="closeApp('roblox')"></button></div>
+    <div class="window-content"><p>🧱 Roblox mô phỏng - bản sandbox giả lập.</p></div>
   </div>
 </div>
 
-<!-- Template for windows -->
-<template id="win-tpl">
-  <div class="win" data-win="">
-    <div class="titlebar">
-      <div class="logo-mini" style="width:28px;height:28px;border-radius:6px"></div>
-      <div class="title">Window</div>
-      <div class="ctrls">
-        <button class="min">—</button>
-        <button class="close">✕</button>
-      </div>
-    </div>
-    <div class="content"></div>
-  </div>
-</template>
-
 <script>
-/* ---------- Simple data model & utilities ---------- */
-const STORAGE_PREFIX = 'btwebos_';
-const state = {
-  currentUser: null,
-  loginSession: null,
-  otpCode: null,
-  openWindows: [],
-  zIndex: 100,
-  installedApps: [] // names
-};
-
-const allApps = [
-  {id:'ai', name:'AI !#!', icon:'🤖', desc:'Chat AI giả lập (offline)'},
-  {id:'cdcode', name:'CD Code', icon:'💻', desc:'Editor & Run HTML/CSS/JS'},
-  {id:'snake', name:'Snake', icon:'🐍', desc:'Game Snake cổ điển'},
-  {id:'runaway', name:'Run Away!', icon:'🏃', desc:'Game né vật cản'},
-  {id:'roblox', name:'Roblox', icon:'🧱', desc:'Sandbox 3D giả lập'},
-  {id:'shvid', name:'Shvid', icon:'🎬', desc:'Upload video & tạo channel'},
-  {id:'talkout', name:'TalkOut', icon:'💬', desc:'Bảng tin / chat công khai'},
-  {id:'appstore', name:'App Store', icon:'🛒', desc:'Tải/cài app cho WebOS'}
-];
-
-function saveLS(key, value){ localStorage.setItem(STORAGE_PREFIX+key, JSON.stringify(value)); }
-function loadLS(key, fallback=null){ const v=localStorage.getItem(STORAGE_PREFIX+key); return v?JSON.parse(v):fallback; }
-
-/* ---------- Simple user store (demo only) ---------- */
-function doRegister(){
-  const u = document.getElementById('reg-username').value.trim();
-  const p = document.getElementById('reg-password').value;
-  if(!u || !p){ alert('Nhập cả username và password!'); return; }
-  const users = loadLS('users', {});
-  if(users[u]){ alert('Tài khoản đã tồn tại.'); return; }
-  users[u] = {pass: btoa(p), created: Date.now()};
-  saveLS('users', users);
-  alert('Đã đăng ký. Bạn có thể đăng nhập ngay bây giờ.');
-  showLogin();
-  document.getElementById('login-username').value = u;
+// ======== AUTH ========
+function showRegister(){
+  document.getElementById("loginScreen").style.display="none";
+  document.getElementById("registerScreen").style.display="flex";
+}
+function backToLogin(){
+  document.getElementById("registerScreen").style.display="none";
+  document.getElementById("loginScreen").style.display="flex";
+}
+function register(){
+  const user=document.getElementById("regUser").value.trim();
+  const pass=document.getElementById("regPass").value.trim();
+  if(!user||!pass){alert("Nhập đầy đủ thông tin!");return;}
+  if(localStorage.getItem("user_"+user)){alert("Tài khoản đã tồn tại!");return;}
+  localStorage.setItem("user_"+user,pass);
+  alert("Đăng ký thành công! Hãy đăng nhập.");
+  backToLogin();
+}
+function login(){
+  const u=document.getElementById("loginUser").value.trim();
+  const p=document.getElementById("loginPass").value.trim();
+  const s=localStorage.getItem("user_"+u);
+  if(s && s===p){
+    document.getElementById("loginScreen").style.display="none";
+    document.getElementById("desktop").style.display="block";
+  }else alert("Sai tài khoản hoặc mật khẩu!");
 }
 
-function showRegister(){ document.getElementById('step-register').style.display='block'; document.getElementById('step-1').style.display='none'; }
-function showLogin(){ document.getElementById('step-register').style.display='none'; document.getElementById('step-1').style.display='block'; }
-
-function startLogin(){
-  const u = document.getElementById('login-username').value.trim();
-  const p = document.getElementById('login-password').value;
-  if(!u || !p){ alert('Nhập username và password'); return; }
-  const users = loadLS('users', {});
-  if(!users[u] || users[u].pass !== btoa(p)){ alert('Sai username hoặc password'); return; }
-  state.currentUser = u;
-  // create login session
-  state.loginSession = {user:u, step:1, created:Date.now()};
-  // generate OTP (demo)
-  const otp = Math.floor(100000 + Math.random()*900000).toString();
-  state.otpCode = otp;
-  document.getElementById('otp-hint').textContent = 'Mã OTP (demo): ' + otp + ' — (trong thực tế mã được gửi qua Authenticator/SMS)';
-  // show step2
-  document.getElementById('step-1').style.display='none';
-  document.getElementById('step-2').style.display='block';
+// ======== DESKTOP ========
+function openApp(id){
+  document.getElementById(id).style.display="flex";
+  document.getElementById(id).style.zIndex=Date.now();
+}
+function closeApp(id){
+  document.getElementById(id).style.display="none";
 }
 
-function verifyOtp(){
-  const code = String(document.getElementById('login-otp').value).trim();
-  if(code === String(state.otpCode)){
-    // next step
-    document.getElementById('step-2').style.display='none';
-    document.getElementById('step-3').style.display='block';
-  }else alert('OTP sai!');
-}
-
-function verifyKey(){
-  // Simulate webauthn: small delay + success
-  alert('Demo: Xác minh khóa bảo mật...');
-  setTimeout(()=>{
-    document.getElementById('step-3').style.display='none';
-    document.getElementById('step-done').style.display='block';
-  },800);
-}
-
-function backToStep1(){ document.getElementById('step-2').style.display='none'; document.getElementById('step-1').style.display='block'; }
-function backToStep2(){ document.getElementById('step-3').style.display='none'; document.getElementById('step-2').style.display='block'; }
-
-function enterDesktop(){
-  document.getElementById('login').style.display='none';
-  document.getElementById('desktop').style.display='block';
-  initDesktop();
-}
-
-/* ---------- Desktop & taskbar ---------- */
-function initDesktop(){
-  // current user
-  document.getElementById('sm-user').textContent = state.currentUser || 'Guest';
-  // load installed apps
-  state.installedApps = loadLS('installed_'+(state.currentUser||'guest'), ['appstore','ai','cdcode','snake','talkout']);
-  renderDesktopIcons();
-  renderStartMenu();
-  updateClock();
-  setInterval(updateClock,1000);
-}
-
-function renderDesktopIcons(){
-  const wrap = document.getElementById('desktop-icons'); wrap.innerHTML='';
-  state.installedApps.forEach(id=>{
-    const app = allApps.find(a=>a.id===id);
-    if(!app) return;
-    const node = document.createElement('div');
-    node.className='app-icon';
-    node.innerHTML = `<div class="ico" title="${app.name}">${app.icon}</div><span>${app.name}</span>`;
-    node.onclick = ()=> openAppWindow(app.id);
-    wrap.appendChild(node);
-  });
-}
-
-function renderStartMenu(){
-  const grid = document.getElementById('start-grid'); grid.innerHTML='';
-  allApps.forEach(app=>{
-    const t = document.createElement('div'); t.className='tile';
-    t.innerHTML = `<div style="font-size:20px">${app.icon}</div><div style="font-size:13px;margin-top:6px">${app.name}</div>`;
-    t.onclick = ()=>{ installApp(app.id); toggleStart(false); };
-    grid.appendChild(t);
-  });
-  const quick = document.getElementById('quick-apps'); quick.innerHTML='';
-  ['ai','cdcode','snake'].forEach(id=>{
-    const a = allApps.find(x=>x.id===id);
-    const el = document.createElement('div'); el.className='tile'; el.style.minWidth='80px'; el.innerHTML = `<div style="font-size:16px">${a.icon}</div><div style="font-size:12px">${a.name}</div>`; el.onclick=()=>openAppWindow(a.id);
-    quick.appendChild(el);
-  });
-}
-
-function toggleStart(force){
-  const el = document.getElementById('start-menu');
-  if(force===undefined) el.style.display = (el.style.display==='block')?'none':'block';
-  else el.style.display = force?'block':'none';
-}
-
+// ======== CLOCK ========
 function updateClock(){
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0');
-  document.getElementById('tray-time').textContent = hh+':'+mm;
-  document.getElementById('tray-date').textContent = now.toLocaleDateString();
+  const d=new Date();
+  document.getElementById("clock").textContent=d.toLocaleTimeString('vi-VN');
 }
-
-/* ---------- App Store / install ---------- */
-function installApp(id){
-  if(!state.installedApps.includes(id)){
-    state.installedApps.push(id);
-    saveLS('installed_'+(state.currentUser||'guest'), state.installedApps);
-    renderDesktopIcons();
-    alert('Đã cài: ' + id);
-  } else {
-    alert('Đã cài sẵn.');
-  }
-}
-
-/* ---------- Window manager ---------- */
-function openAppWindow(id){
-  const app = allApps.find(a=>a.id===id);
-  if(!app) return;
-  // create window
-  const tpl = document.getElementById('win-tpl').content.cloneNode(true);
-  const win = tpl.querySelector('.win');
-  const title = win.querySelector('.title');
-  const logoMini = win.querySelector('.logo-mini');
-  const content = win.querySelector('.content');
-  title.textContent = app.name;
-  logoMini.style.background = 'linear-gradient(135deg,var(--accent),var(--accent-2))';
-  win.style.left = (80 + Math.random()*200)+'px';
-  win.style.top = (60 + Math.random()*120)+'px';
-  win.style.zIndex = ++state.zIndex;
-  // attach behaviors
-  win.querySelector('.close').onclick = ()=> { win.remove(); refreshRunning(); };
-  win.querySelector('.min').onclick = ()=> { win.style.display='none'; refreshRunning(); };
-  // dragging
-  makeDraggable(win);
-  // content per app
-  content.innerHTML = renderAppContent(id);
-  document.body.appendChild(win);
-  state.openWindows.push({id,el:win});
-  refreshRunning();
-  // focus on click
-  win.addEventListener('mousedown', ()=> { win.style.zIndex = ++state.zIndex; });
-}
-
-function refreshRunning(){
-  const run = document.getElementById('running-bar'); run.innerHTML='';
-  document.querySelectorAll('.win').forEach(w=>{
-    if(w.style.display === 'none') return;
-    const t = w.querySelector('.title').textContent;
-    const btn = document.createElement('div'); btn.className='small'; btn.style.background='rgba(255,255,255,0.02)'; btn.textContent = t;
-    btn.onclick = ()=> { w.style.display = (w.style.display==='none')?'flex':'none'; w.style.zIndex = ++state.zIndex; };
-    run.appendChild(btn);
-  });
-}
-
-/* Simple draggable */
-function makeDraggable(el){
-  const bar = el.querySelector('.titlebar');
-  bar.style.cursor='grab';
-  let dragging=false, ox=0, oy=0, sx=0, sy=0;
-  bar.onpointerdown = (e)=>{
-    dragging=true; bar.setPointerCapture(e.pointerId); ox=e.clientX; oy=e.clientY; sx=parseInt(el.style.left)||el.getBoundingClientRect().left; sy=parseInt(el.style.top)||el.getBoundingClientRect().top;
-    bar.style.cursor='grabbing';
-  };
-  window.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    const dx = e.clientX - ox, dy = e.clientY - oy;
-    el.style.left = (sx + dx) + 'px';
-    el.style.top = (sy + dy) + 'px';
-  });
-  window.addEventListener('pointerup', (e)=>{
-    if(dragging){ dragging=false; try{ bar.releasePointerCapture(e.pointerId) }catch(e){} bar.style.cursor='grab'; }
-  });
-}
-
-/* ---------- App Contents (HTML strings) ---------- */
-function renderAppContent(id){
-  switch(id){
-    case 'ai': return renderAI();
-    case 'cdcode': return renderCDCode();
-    case 'snake': return renderSnake();
-    case 'runaway': return renderRunAway();
-    case 'roblox': return renderRoblox();
-    case 'shvid': return renderShvid();
-    case 'talkout': return renderTalkOut();
-    case 'appstore': return renderAppStore();
-    default: return `<div>Ứng dụng chưa cài.</div>`;
-  }
-}
-
-/* ---------- APP: AppStore ---------- */
-function renderAppStore(){
-  const items = allApps.map(a=>`<div class="card-small"><b>${a.icon} ${a.name}</b><div class="muted-sm">${a.desc}</div><div style="margin-top:8px"><button class="small" onclick="installApp('${a.id}')">Cài</button> <button class="small" onclick="openAppWindow('${a.id}')">Mở</button></div></div>`).join('');
-  return `<div><h3>App Store</h3><div class="content-scroll">${items}</div></div>`;
-}
-
-/* ---------- APP: AI (fake) ---------- */
-function renderAI(){
-  return `
-  <div style="display:flex;flex-direction:column;height:100%">
-    <div id="ai-log" style="flex:1;overflow:auto;padding:6px" class="list"></div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <input id="ai-input" type="text" placeholder="Gõ câu hỏi..." />
-      <button class="btn" onclick="aiSend()">Gửi</button>
-    </div>
-  </div>
-  `;
-}
-
-function aiSend(){
-  const q = document.getElementById('ai-input').value.trim(); if(!q) return;
-  const log = document.getElementById('ai-log');
-  const userLine = document.createElement('div'); userLine.className='card-small'; userLine.style.background='rgba(255,255,255,0.02)'; userLine.innerHTML = `<b>Bạn:</b> ${escapeHtml(q)}`; log.appendChild(userLine);
-  document.getElementById('ai-input').value='';
-  // fake processing
-  const bot = document.createElement('div'); bot.className='card-small'; bot.style.background='linear-gradient(180deg,rgba(0,184,212,0.06),rgba(0,212,179,0.03))'; bot.innerHTML = `<b>AI !#!:</b> Đang suy nghĩ...`; log.appendChild(bot);
-  log.scrollTop = log.scrollHeight;
-  setTimeout(()=>{
-    bot.innerHTML = `<b>AI !#!:</b> (demo) Mình nhận được: "${escapeHtml(q)}". Gợi ý: thử mở CD Code để test, hoặc tải video lên Shvid.`;
-    log.scrollTop = log.scrollHeight;
-  },800);
-}
-
-/* ---------- APP: CD Code ---------- */
-function renderCDCode(){
-  const sample = `<!-- HTML -->\n<div style="font-family:system-ui;padding:20px"><h2>Hello từ CD Code</h2><p>Viết HTML/CSS/JS tại đây rồi bấm Run.</p></div>\n\n<!-- CSS -->\nbody{background:linear-gradient(120deg,#e0f7ff,#e6fffa)}\n\n/* JS */\nconsole.log('Hello from run');`;
-  return `<div style="display:flex;flex-direction:column;height:100%"><div style="display:flex;gap:8px"><button class="btn" onclick="runCode()">Run</button><button class="small" onclick="saveSnippet()">Lưu Snippet</button></div><div style="display:flex;gap:8px;margin-top:8px;flex:1"><textarea id="code-area" style="flex:1;border-radius:8px;padding:8px">${sample}</textarea><iframe id="code-run" sandbox="allow-scripts" style="width:45%;border-radius:8px;border:1px solid rgba(255,255,255,0.03)"></iframe></div></div>`;
-}
-
-function runCode(){
-  const v = document.getElementById('code-area').value;
-  // split simple into HTML,CSS,JS blocks by comments (very simple parser)
-  const html = v.split('<!-- HTML -->')[1] || '';
-  const css = (v.split('<!-- CSS -->')[1] || '').split('<!-- JS -->')[0] || '';
-  const js = v.split('<!-- JS -->')[1] || '';
-  const doc = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`;
-  const iframe = document.getElementById('code-run');
-  iframe.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(doc);
-}
-
-function saveSnippet(){
-  const name = prompt('Tên snippet (demo):'); if(!name) return;
-  const snippets = loadLS('snips_'+(state.currentUser||'guest'), {});
-  snippets[name] = document.getElementById('code-area').value;
-  saveLS('snips_'+(state.currentUser||'guest'), snippets);
-  alert('Đã lưu snippet: ' + name);
-}
-
-/* ---------- APP: Snake (canvas) ---------- */
-function renderSnake(){
-  return `<div style="display:flex;flex-direction:column;height:100%"><div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn" onclick="startSnake()">Bắt đầu</button><button class="small" onclick="stopSnake()">Dừng</button><span class="muted-sm">Phím điều khiển: W A S D hoặc mũi tên</span></div><canvas id="snake-canvas" width="600" height="360" style="background:#04121a;border-radius:8px"></canvas></div>`;
-}
-let snakeTimer=null, snakeState=null;
-function startSnake(){
-  const canvas = document.getElementById('snake-canvas'); if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height, size=20;
-  let snake=[{x:6,y:8},{x:5,y:8},{x:4,y:8}], dir={x:1,y:0};
-  let food = {x:Math.floor(Math.random()*(W/size)), y:Math.floor(Math.random()*(H/size))};
-  snakeState={running:true};
-  function draw(){
-    if(!snakeState.running) return;
-    ctx.fillStyle='#03121a'; ctx.fillRect(0,0,W,H);
-    // move
-    const head = {x:snake[0].x+dir.x, y:snake[0].y+dir.y};
-    if(head.x<0||head.y<0||head.x>=W/size||head.y>=H/size || snake.some(s=>s.x===head.x && s.y===head.y)){
-      clearInterval(snakeTimer); alert('Game over!'); return;
-    }
-    snake.unshift(head);
-    if(head.x===food.x && head.y===food.y){
-      food = {x:Math.floor(Math.random()*(W/size)), y:Math.floor(Math.random()*(H/size))};
-    } else snake.pop();
-    // draw snake
-    ctx.fillStyle='#00e0d4';
-    snake.forEach((s,i)=> ctx.fillRect(s.x*size+2, s.y*size+2, size-4, size-4));
-    // draw food
-    ctx.fillStyle='#ffcc00'; ctx.fillRect(food.x*size+4, food.y*size+4, size-8, size-8);
-  }
-  window.addEventListener('keydown', snakeKey);
-  snakeTimer = setInterval(draw, 120);
-  function snakeKey(e){
-    const k = e.key.toLowerCase();
-    if(k==='a' || e.key==='ArrowLeft'){ if(dir.x!==1){dir={x:-1,y:0}} }
-    if(k==='d' || e.key==='ArrowRight'){ if(dir.x!==-1){dir={x:1,y:0}} }
-    if(k==='w' || e.key==='ArrowUp'){ if(dir.y!==1){dir={x:0,y:-1}} }
-    if(k==='s' || e.key==='ArrowDown'){ if(dir.y!==-1){dir={x:0,y:1}} }
-  }
-  snakeState.stop = ()=>{ snakeState.running=false; clearInterval(snakeTimer); window.removeEventListener('keydown',snakeKey); }
-}
-function stopSnake(){ if(snakeState && snakeState.stop) snakeState.stop(); }
-
-/* ---------- APP: Run Away (simple dodge game) ---------- */
-function renderRunAway(){
-  return `<div style="display:flex;flex-direction:column;height:100%"><div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn" onclick="startRunAway()">Start</button><button class="small" onclick="stopRunAway()">Stop</button><span class="muted-sm">Dùng chuột để di chuyển nhân vật xanh</span></div><canvas id="run-canvas" width="640" height="360" style="background:#001b24;border-radius:8px"></canvas></div>`;
-}
-let runTimer=null, runState=null;
-function startRunAway(){
-  const c = document.getElementById('run-canvas'); if(!c) return;
-  const ctx = c.getContext('2d'); const W=c.width,H=c.height;
-  let player={x:W/2,y:H-40,r:10}, enemies=[];
-  runState={running:true,score:0};
-  c.onmousemove = (e)=>{ const r = c.getBoundingClientRect(); player.x = e.clientX - r.left; player.y = e.clientY - r.top; };
-  function spawn(){ enemies.push({x:Math.random()*W,y:-20,r:12,vy:1+Math.random()*2}); }
-  function step(){
-    if(!runState.running) return;
-    ctx.clearRect(0,0,W,H);
-    // spawn
-    if(Math.random()<0.03) spawn();
-    enemies.forEach(en=>{ en.y+=en.vy; ctx.fillStyle='#ff6b6b'; ctx.beginPath(); ctx.arc(en.x,en.y,en.r,0,Math.PI*2); ctx.fill(); });
-    // player
-    ctx.fillStyle='#00ffd4'; ctx.beginPath(); ctx.arc(player.x,player.y,player.r,0,Math.PI*2); ctx.fill();
-    // collision
-    enemies = enemies.filter(en=>{
-      const dx = en.x - player.x, dy = en.y - player.y;
-      if(Math.hypot(dx,dy) < en.r + player.r){ clearInterval(runTimer); alert('Bạn bị chạm! Điểm: '+runState.score); runState.running=false; return false; }
-      if(en.y>H+50){ runState.score+=1; return false; }
-      return true;
-    });
-  }
-  runTimer = setInterval(step, 30);
-}
-function stopRunAway(){ if(runTimer) clearInterval(runTimer); if(document.getElementById('run-canvas')) document.getElementById('run-canvas').onmousemove = null; }
-
-/* ---------- APP: Roblox (placeholder 3D) ---------- */
-function renderRoblox(){
-  return `<div style="display:flex;flex-direction:column;height:100%"><div class="muted-sm">Roblox (phiên bản demo): sandbox 3D giả lập bằng CSS</div><div style="margin-top:8px;padding:8px;background:rgba(255,255,255,0.02);border-radius:8px;flex:1;display:flex;align-items:center;justify-content:center"><div style="width:80%;height:260px;background:linear-gradient(180deg,#063042,#02202b);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#dff7fb"><div><h3>Mini 3D Scene</h3><p class="muted-sm">(Demo) Không phải Roblox thật — chỉ là mô phỏng.</p></div></div></div></div>`;
-}
-
-/* ---------- APP: Shvid (video upload & channels) ---------- */
-function renderShvid(){
-  const channels = loadLS('shvid_channels_'+(state.currentUser||'guest'), {default:{name:'MyChannel', vids:[]}});
-  let html = `<div style="display:flex;flex-direction:column;height:100%"><div style="display:flex;gap:8px"><input id="shvid-title" placeholder="Tiêu đề video" class="small" /><input id="shvid-file" type="file" accept="video/*" class="small" /></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn" onclick="shvidUpload()">Upload</button><button class="small" onclick="shvidNewChannel()">Tạo channel mới</button></div><div style="flex:1;overflow:auto;margin-top:10px">`;
-  for(const k in channels){
-    const ch = channels[k];
-    html += `<div class="card-small"><b>Channel: ${escapeHtml(ch.name)}</b><div class="muted-sm">Videos: ${ch.vids.length}</div><div style="margin-top:6px">${ch.vids.map((v,i)=>`<div style="margin-top:6px"><a href="#" onclick="shvidPlay('${k}',${i})">${escapeHtml(v.title)}</a></div>`).join('')}</div></div>`;
-  }
-  html += `</div></div>`;
-  return html;
-}
-function shvidNewChannel(){
-  const name = prompt('Tên channel:'); if(!name) return;
-  const key = 'ch_'+Date.now();
-  const channels = loadLS('shvid_channels_'+(state.currentUser||'guest'), {});
-  channels[key] = {name, vids:[]};
-  saveLS('shvid_channels_'+(state.currentUser||'guest'), channels);
-  alert('Đã tạo channel: '+name);
-}
-function shvidUpload(){
-  const fileInput = document.getElementById('shvid-file');
-  const title = document.getElementById('shvid-title').value.trim() || 'No title';
-  if(!fileInput.files[0]){ alert('Chọn file video'); return; }
-  const file = fileInput.files[0];
-  const reader = new FileReader();
-  reader.onload = (e)=>{
-    // store base64 (may be large) — for demo only
-    const data = e.target.result;
-    const channels = loadLS('shvid_channels_'+(state.currentUser||'guest'), {});
-    // pick first channel or create default
-    const keys = Object.keys(channels);
-    let key = keys[0];
-    if(!key){
-      key = 'ch_'+Date.now();
-      channels[key] = {name:'MyChannel', vids:[]};
-    }
-    channels[key].vids.push({title, data, uploaded:Date.now()});
-    saveLS('shvid_channels_'+(state.currentUser||'guest'), channels);
-    alert('Uploaded to channel: '+channels[key].name);
-    // re-open app to refresh
-    openAppWindow('shvid');
-  };
-  reader.readAsDataURL(file);
-}
-function shvidPlay(chKey, idx){
-  const channels = loadLS('shvid_channels_'+(state.currentUser||'guest'), {});
-  const v = channels[chKey].vids[idx];
-  const win = getWinByTitle('Shvid Player') || createGenericWin('Shvid Player', `<div style="display:flex;flex-direction:column;height:100%"><div style="font-weight:700">${escapeHtml(v.title)}</div><video controls style="width:100%;margin-top:8px" src="${v.data}"></video></div>`);
-  // nothing else
-}
-function getWinByTitle(t){
-  return Array.from(document.querySelectorAll('.win')).find(w=>w.querySelector('.title')?.textContent===t);
-}
-function createGenericWin(title, html){
-  const tpl = document.getElementById('win-tpl').content.cloneNode(true);
-  const win = tpl.querySelector('.win'); win.querySelector('.title').textContent = title; win.querySelector('.content').innerHTML = html;
-  win.style.left = (120 + Math.random()*120)+'px'; win.style.top = (80 + Math.random()*80)+'px'; document.body.appendChild(win);
-  makeDraggable(win);
-  win.querySelector('.close').onclick = ()=> { win.remove(); refreshRunning(); };
-  win.querySelector('.min').onclick = ()=> { win.style.display='none'; refreshRunning(); };
-  return win;
-}
-
-/* ---------- APP: TalkOut (posts) ---------- */
-function renderTalkOut(){
-  const posts = loadLS('talk_posts', []);
-  const items = posts.map(p=>`<div class="card-small"><b>${escapeHtml(p.user)}</b> <span class="muted-sm">${new Date(p.t).toLocaleString()}</span><div style="margin-top:6px">${escapeHtml(p.msg)}</div></div>`).join('');
-  return `<div style="display:flex;flex-direction:column;height:100%"><div style="display:flex;gap:8px"><input id="talk-input" placeholder="Viết bài..." class="small" /><button class="btn" onclick="talkPost()">Đăng</button></div><div style="flex:1;overflow:auto;margin-top:8px">${items}</div></div>`;
-}
-function talkPost(){
-  const txt = document.getElementById('talk-input').value.trim(); if(!txt) return;
-  const posts = loadLS('talk_posts', []);
-  posts.unshift({user:state.currentUser||'Guest', msg:txt, t:Date.now()});
-  saveLS('talk_posts', posts);
-  alert('Đã đăng');
-  openAppWindow('talkout');
-}
-
-/* ---------- Helpers ---------- */
-function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-
-/* ---------- Boot: show register/login ---------- */
-(function boot(){
-  // create a sample user if none
-  const users = loadLS('users', {});
-  if(!users['admin']){
-    users['admin'] = {pass:btoa('12345'), created:Date.now()};
-    saveLS('users', users);
-  }
-  document.getElementById('step-register').style.display='none';
-  document.getElementById('step-1').style.display='block';
-})();
-
-/* ---------- Allow clicking desktop icons to focus hidden windows (taskbar) ---------- */
-document.addEventListener('click', (e)=>{
-  if(!e.target.closest('.start') && !e.target.closest('#start-menu')) toggleStart(false);
-});
-
-/* ---------- Expose some globals for console debug ---------- */
-window.bt = { state, openAppWindow, installApp, loadLS, saveLS, startSnake };
+setInterval(updateClock,1000);
+updateClock();
 </script>
 </body>
 </html>
